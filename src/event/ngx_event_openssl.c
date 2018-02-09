@@ -546,10 +546,10 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
             return NGX_ERROR;
         }
 
-        if (!ENGINE_set_default(engine, ENGINE_METHOD_ALL)) {
+        if (!ENGINE_set_default(engine, ENGINE_METHOD_PKEY_METHS)) {
             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
                           "ENGINE_set_default(\"%s\", %s) failed",
-                          p, "ENGINE_METHOD_ALL");
+                          p, "ENGINE_METHOD_PKEY_METHS");
             EVP_PKEY_free(pkey);
             ENGINE_free(engine);
             return NGX_ERROR;
@@ -4239,10 +4239,10 @@ ngx_openssl_engine(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         return NGX_CONF_ERROR;
     }
 
-    if (ENGINE_set_default(engine, ENGINE_METHOD_ALL) == 0) {
+    if (ENGINE_set_default(engine, ENGINE_METHOD_PKEY_METHS) == 0) {
         ngx_ssl_error(NGX_LOG_EMERG, cf->log, 0,
                       "ENGINE_set_default(\"%V\", %s) failed",
-                      &value[1], "ENGINE_METHOD_ALL");
+                      &value[1], "ENGINE_METHOD_PKEY_METHS");
         ENGINE_free(engine);
         return NGX_CONF_ERROR;
     }
