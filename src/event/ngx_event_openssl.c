@@ -529,7 +529,7 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
 
         if (!ENGINE_init(engine)) {
             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
-                          "ENGINE_init(engine) failed");
+                          "ENGINE_init(\"%s\") failed", p);
             ENGINE_free(engine);
             return NGX_ERROR;
         }
@@ -540,14 +540,16 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
 
         if (pkey == NULL) {
             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
-                          "ENGINE_load_private_key(\"%s\") failed", last);
+                          "ENGINE_load_private_key(\"%s\", %s, %d, %d) failed",
+                          p, last, 0, 0);
             ENGINE_free(engine);
             return NGX_ERROR;
         }
 
         if (!ENGINE_set_default(engine, ENGINE_METHOD_ALL)) {
             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
-                          "ENGINE_set_default(engine, ENGINE_METHOD_ALL) failed");
+                          "ENGINE_set_default(\"%s\", %s) failed",
+                          p, "ENGINE_METHOD_ALL");
             EVP_PKEY_free(pkey);
             ENGINE_free(engine);
             return NGX_ERROR;
@@ -555,7 +557,8 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
 
         if (SSL_CTX_use_PrivateKey(ssl->ctx, pkey) == 0) {
             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
-                          "SSL_CTX_use_PrivateKey(ssl->ctx, pkey) failed");
+                          "SSL_CTX_use_PrivateKey() failed trying to use %s",
+                          key->data);
             EVP_PKEY_free(pkey);
             return NGX_ERROR;
         }
@@ -4230,15 +4233,16 @@ ngx_openssl_engine(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     }
 
     if (!ENGINE_init(engine)) {
-        ngx_ssl_error(NGX_LOG_EMERG, cf->log, 0, "ENGINE_init(engine) failed");
+        ngx_ssl_error(NGX_LOG_EMERG, cf->log, 0, "ENGINE_init(\"%V\") failed",
+                      &value[1]);
         ENGINE_free(engine);
         return NGX_CONF_ERROR;
     }
 
     if (ENGINE_set_default(engine, ENGINE_METHOD_ALL) == 0) {
         ngx_ssl_error(NGX_LOG_EMERG, cf->log, 0,
-                      "ENGINE_set_default(\"%V\", ENGINE_METHOD_ALL) failed",
-                      &value[1]);
+                      "ENGINE_set_default(\"%V\", %s) failed",
+                      &value[1], "ENGINE_METHOD_ALL");
         ENGINE_free(engine);
         return NGX_CONF_ERROR;
     }
